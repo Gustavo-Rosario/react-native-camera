@@ -1,6 +1,10 @@
 import React from 'react';
-import { Text, View, TouchableOpacity, Image, CameraRoll, ToastAndroid } from 'react-native';
-import { Camera, Permissions, FileSystem } from 'expo';
+import { 
+  Text, View, TouchableOpacity,
+  Image, CameraRoll, ToastAndroid,
+  ActivityIndicator, Button, Dimensions
+ } from 'react-native';
+import { Camera, Permissions } from 'expo';
 
 export default class CameraExample extends React.Component {
   
@@ -9,8 +13,10 @@ export default class CameraExample extends React.Component {
     this.state = {
       imgRoll: null,
       img: null,
+      saving: false,
       hasCameraPermission: null,
       type: Camera.Constants.Type.back,
+      window: Dimensions.get('window')
     };
     this.renderImg = this.renderImg.bind(this);
     this.renderCamera = this.renderCamera.bind(this);
@@ -23,10 +29,11 @@ export default class CameraExample extends React.Component {
 
   snap = async () => {
     if (this.camera) {
+      this.setState({saving: true});
       //Tira a foto
       let photo = await this.camera.takePictureAsync();
       //Salva a foto no state da aplicação
-      this.setState({img: photo});  
+      this.setState({saving: false,img: photo});  
       //Salva a foto no rolo da camera. Podemos salvar em outro lugar futuramente
       //await CameraRoll.saveToCameraRoll(photo.uri, 'photo');
     }
@@ -54,78 +61,76 @@ export default class CameraExample extends React.Component {
   }
 
   renderImg(){
-    const { img } = this.state;
+    const { img, window } = this.state;
     //Renderiza a img na tela. Os valores 400 e 700 sao numeros que coloquei de teste
     return (
-      <View style={{flex:1}}>
+      <View style={{flex:1, backgroundColor: 'black'}}>
+        {/* TOPO */}
+        <View style={{flex:1}}>
+          <Text style={{flex:1, fontSize: 18, color: 'white', textAlignVertical: 'center',textAlign: 'center'}}>
+            Captura
+          </Text>
+        </View>
+
+        {/* CORPO */}
         <Image 
           style={{
-            width:400,
-            height:700,
-            resizeMode: 'cover',
+            backgroundColor: 'transparent',
+            flex: 3,
+            resizeMode: 'contain'
           }}
           source={{uri: img.uri}}
         />
+
+        {/* RODAPE */}
         <View
           style={{
             flex: 1,
             backgroundColor: 'transparent',
-            flexDirection: 'row',
+            flexDirection: 'row'
           }}
         >
-        
-          <TouchableOpacity
+          <View
             style={{
-              flex: 0.5,
-              alignSelf: 'flex-end',
-              alignItems: 'center',
+              alignSelf: 'center',
+              width: window.width/2,
+              padding: 20,
+              borderRadius: 5,
+              color: 'black'
             }}
-            onPress={this.save}
           >
-            <Text
-              style={{
-                width: 150,
-                fontSize: 18,
-                marginBottom: 10,
-                color: 'white',
-                backgroundColor: 'blue'
-              }}
-            >
-              Save
-            </Text>
-          </TouchableOpacity>
+            <Button
+              title="Save"
+              color="green"
+              onPress={this.save}
+            />
+          </View>
 
-
-          <TouchableOpacity
+          <View 
             style={{
-              flex: 0.5,
-              alignSelf: 'flex-end',
-              alignItems: 'center',
-            }}
-            onPress={this.cancel}
-          >
-            <Text
-              style={{
-                width: 150,
-                fontSize: 18,
-                marginLeft: 100,
-                marginBottom: 10,
-                color: 'white',
-                backgroundColor: 'blue'
-              }}
-            >
-              Cancel
-            </Text>
-          </TouchableOpacity>
+              alignSelf: 'center',
+              width: window.width/2,
+              padding: 20,
+              borderRadius: 5,
+              color: 'white'
+            }}>
+            <Button
+              title="Cancel"
+              color="red"
+              onPress={this.cancel}
+            />
+          </View>
         </View>
+
       </View>
     )
   }
 
   renderCamera() {
+    const { saving } = this.state;
     //Exibe a camera na tela cheia
     return (
-      <View style={{flex:1}}>
+      <View style={{flex:1, zIndex: 1}}>
         <Camera
           ref={ref => {this.camera = ref;}}
           style={{ flex: 1 }}
@@ -133,28 +138,24 @@ export default class CameraExample extends React.Component {
           ratio="16:9">
           <View
             style={{
-              flex: 1,
-              backgroundColor: 'transparent',
-              flexDirection: 'row',
+              flex:1,
+              flexDirection:'row',
+              alignItems:'center',
+              justifyContent:'center'
             }}>
-            
-
-            <TouchableOpacity
-              style={{
-                flex: 0.5,
-                alignSelf: 'flex-end',
-                alignItems: 'center',
-              }}
-              onPress={this.snap}>
+            <TouchableOpacity style={{alignSelf: 'flex-end', alignItems: 'center'}} onPress={this.snap}>
               <Text
                 style={{
-                  width: 150,
+                  width: 80,
+                  height: 80,
                   fontSize: 18,
-                  marginBottom: 10,
-                  color: 'white',
-                  backgroundColor: 'blue'
+                  marginBottom: 30,
+                  borderRadius: 80/2,
+                  borderWidth: 7,
+                  borderColor: 'white',
+                  textAlign: 'center',
+                  backgroundColor: 'gray'
                 }}>
-                {' '}Picture{' '}
               </Text>
             </TouchableOpacity>
           </View>
@@ -164,7 +165,7 @@ export default class CameraExample extends React.Component {
   }
 
   render() {
-    const { hasCameraPermission, img } = this.state;
+    const { hasCameraPermission, img, saving } = this.state;
     if (hasCameraPermission === null) { //Checa as permissoes
       return <View />;
     } else if (hasCameraPermission === false) { //Checa se permissoes foram negadas
@@ -175,6 +176,20 @@ export default class CameraExample extends React.Component {
       //Exibe um dos metodo
       return (
         <View style={{ flex: 1 }}>
+         <ActivityIndicator
+            style={{
+              flex: 1,
+              position: 'absolute',
+              zIndex: 9,
+              alignSelf: 'stretch',
+              textAlign: 'center',
+              width: '100%',
+              height: '100%'
+            }}
+            animating={saving}
+            color="red"
+            size="large"
+          />
           {rendered}
         </View>
       );
