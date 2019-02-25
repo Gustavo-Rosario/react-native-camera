@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, View, TouchableOpacity, Image, CameraRoll } from 'react-native';
+import { Text, View, TouchableOpacity, Image, CameraRoll, ToastAndroid } from 'react-native';
 import { Camera, Permissions, FileSystem } from 'expo';
 
 export default class CameraExample extends React.Component {
@@ -28,19 +28,98 @@ export default class CameraExample extends React.Component {
       //Salva a foto no state da aplicação
       this.setState({img: photo});  
       //Salva a foto no rolo da camera. Podemos salvar em outro lugar futuramente
-      await CameraRoll.saveToCameraRoll(photo.uri, 'photo');
+      //await CameraRoll.saveToCameraRoll(photo.uri, 'photo');
     }
   }
 
   // Esse metodo será utilizado futuramente para o botao SALVAR IMG após a pessoas tirar a foto
-  // save = async () => {
-  //    await CameraRoll.saveToCameraRoll(photo.uri, 'photo');
-  // }
+  save = async () => {
+    const { img } = this.state; 
+    await CameraRoll.saveToCameraRoll(img.uri, 'photo');
+    this.toastRodape("Imagem salva");
+    this.cancel();
+
+  }
+
+  toastRodape = (msg) => {
+    ToastAndroid.showWithGravity(
+      msg,
+      ToastAndroid.SHORT,
+      ToastAndroid.BOTTOM,
+    );
+  } 
+
+  cancel = () => {
+    this.setState({img: null})
+  }
 
   renderImg(){
     const { img } = this.state;
     //Renderiza a img na tela. Os valores 400 e 700 sao numeros que coloquei de teste
-    return <Image style={{width:400, height:700, resizeMode: 'contain',}} source={{uri: img.uri}} />
+    return (
+      <View style={{flex:1}}>
+        <Image 
+          style={{
+            width:400,
+            height:700,
+            resizeMode: 'cover',
+          }}
+          source={{uri: img.uri}}
+        />
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: 'transparent',
+            flexDirection: 'row',
+          }}
+        >
+        
+          <TouchableOpacity
+            style={{
+              flex: 0.5,
+              alignSelf: 'flex-end',
+              alignItems: 'center',
+            }}
+            onPress={this.save}
+          >
+            <Text
+              style={{
+                width: 150,
+                fontSize: 18,
+                marginBottom: 10,
+                color: 'white',
+                backgroundColor: 'blue'
+              }}
+            >
+              Save
+            </Text>
+          </TouchableOpacity>
+
+
+          <TouchableOpacity
+            style={{
+              flex: 0.5,
+              alignSelf: 'flex-end',
+              alignItems: 'center',
+            }}
+            onPress={this.cancel}
+          >
+            <Text
+              style={{
+                width: 150,
+                fontSize: 18,
+                marginLeft: 100,
+                marginBottom: 10,
+                color: 'white',
+                backgroundColor: 'blue'
+              }}
+            >
+              Cancel
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    )
   }
 
   renderCamera() {
@@ -68,7 +147,13 @@ export default class CameraExample extends React.Component {
               }}
               onPress={this.snap}>
               <Text
-                style={{ width: 150, fontSize: 18, marginBottom: 10, color: 'white' }}>
+                style={{
+                  width: 150,
+                  fontSize: 18,
+                  marginBottom: 10,
+                  color: 'white',
+                  backgroundColor: 'blue'
+                }}>
                 {' '}Picture{' '}
               </Text>
             </TouchableOpacity>
@@ -90,7 +175,7 @@ export default class CameraExample extends React.Component {
       //Exibe um dos metodo
       return (
         <View style={{ flex: 1 }}>
-          {rendered} 
+          {rendered}
         </View>
       );
     }
