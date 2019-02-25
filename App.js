@@ -7,6 +7,7 @@ export default class CameraExample extends React.Component {
   constructor(props){
     super(props);
     this.state = {
+      imgRoll: null,
       img: null,
       hasCameraPermission: null,
       type: Camera.Constants.Type.back,
@@ -22,25 +23,35 @@ export default class CameraExample extends React.Component {
 
   snap = async () => {
     if (this.camera) {
+      //Tira a foto
       let photo = await this.camera.takePictureAsync();
+      //Salva a foto no state da aplicação
       this.setState({img: photo});  
-      await CameraRoll.saveToCameraRoll(photo.uri, 'photo');    
+      //Salva a foto no rolo da camera. Podemos salvar em outro lugar futuramente
+      await CameraRoll.saveToCameraRoll(photo.uri, 'photo');
     }
   }
 
+  // Esse metodo será utilizado futuramente para o botao SALVAR IMG após a pessoas tirar a foto
   // save = async () => {
-  //   let saveResult = await CameraRoll.saveToCameraRoll(result, 'photo');
+  //    await CameraRoll.saveToCameraRoll(photo.uri, 'photo');
   // }
 
-  renderImg() {
-    const { img } = this.state.img;
-    return <Image source={img.uri} />
+  renderImg(){
+    const { img } = this.state;
+    //Renderiza a img na tela. Os valores 400 e 700 sao numeros que coloquei de teste
+    return <Image style={{width:400, height:700, resizeMode: 'contain',}} source={{uri: img.uri}} />
   }
 
   renderCamera() {
+    //Exibe a camera na tela cheia
     return (
       <View style={{flex:1}}>
-        <Camera ref={ref => {this.camera = ref;}} style={{ flex: 1 }} type={this.state.type}>
+        <Camera
+          ref={ref => {this.camera = ref;}}
+          style={{ flex: 1 }}
+          type={this.state.type}
+          ratio="16:9">
           <View
             style={{
               flex: 1,
@@ -51,13 +62,13 @@ export default class CameraExample extends React.Component {
 
             <TouchableOpacity
               style={{
-                flex: 0.2,
+                flex: 0.5,
                 alignSelf: 'flex-end',
                 alignItems: 'center',
               }}
               onPress={this.snap}>
               <Text
-                style={{ width: 50, fontSize: 18, marginBottom: 10, color: 'white' }}>
+                style={{ width: 150, fontSize: 18, marginBottom: 10, color: 'white' }}>
                 {' '}Picture{' '}
               </Text>
             </TouchableOpacity>
@@ -69,12 +80,14 @@ export default class CameraExample extends React.Component {
 
   render() {
     const { hasCameraPermission, img } = this.state;
-    if (hasCameraPermission === null) {
+    if (hasCameraPermission === null) { //Checa as permissoes
       return <View />;
-    } else if (hasCameraPermission === false) {
+    } else if (hasCameraPermission === false) { //Checa se permissoes foram negadas
       return <Text>No access to camera</Text>;
     } else {
+      //Checa se há img salva no state para exibir
       let rendered = img ? this.renderImg() :  this.renderCamera();
+      //Exibe um dos metodo
       return (
         <View style={{ flex: 1 }}>
           {rendered} 
