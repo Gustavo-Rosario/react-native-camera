@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, View, TouchableOpacity, Image } from 'react-native';
+import { Text, View, TouchableOpacity, Image, CameraRoll } from 'react-native';
 import { Camera, Permissions, FileSystem } from 'expo';
 
 export default class CameraExample extends React.Component {
@@ -23,18 +23,18 @@ export default class CameraExample extends React.Component {
   snap = async () => {
     if (this.camera) {
       let photo = await this.camera.takePictureAsync();
-      this.setState({img: photo});      
+      this.setState({img: photo});  
+      await CameraRoll.saveToCameraRoll(photo.uri, 'photo');    
     }
   }
 
-  save = async () => {
-    await FileSystem.copyAsync({
-      from: `file://${photo.uri}`,to: `${FileSystem.documentDirectory}imgs/teste2.jpg` });
-  }
+  // save = async () => {
+  //   let saveResult = await CameraRoll.saveToCameraRoll(result, 'photo');
+  // }
 
   renderImg() {
     const { img } = this.state.img;
-    return <Image style={{width: img.width, height: img.height}} source={img.uri} />
+    return <Image source={img.uri} />
   }
 
   renderCamera() {
@@ -68,7 +68,7 @@ export default class CameraExample extends React.Component {
   }
 
   render() {
-    const { hasCameraPermission, imgUri } = this.state;
+    const { hasCameraPermission, img } = this.state;
     if (hasCameraPermission === null) {
       return <View />;
     } else if (hasCameraPermission === false) {
